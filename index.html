@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dual YouTube Multi Player</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <header class="app-header">
+        <h1>Dual YouTube Player</h1>
+        <p>Play two YouTube videos or playlists simultaneously.</p>
+    </header>
+
+
+    <!-- =========================================================
+         GLOBAL CONTROLS
+    ========================================================== -->
+
+    <section class="global-controls">
+
+        <h2>Global Controls</h2>
+
+        <div class="button-group">
+
+            <button id="playBothBtn">
+                ▶ Play Both
+            </button>
+
+            <button id="pauseBothBtn">
+                ⏸ Pause Both
+            </button>
+
+            <button id="muteBothBtn">
+                🔇 Mute Both
+            </button>
+
+            <button id="unmuteBothBtn">
+                🔊 Unmute Both
+            </button>
+
+            <button id="nextBothBtn">
+                ⏭ Next Both
+            </button>
+
+            <button id="previousBothBtn">
+                ⏮ Previous Both
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================================================
+         PLAYERS
+    ========================================================== -->
+
+    <main class="players-container">
+
+
+        <!-- =====================================================
+             PLAYER 1
+        ====================================================== -->
+
+        <section class="player-card">
+
+            <div class="player-header">
+                <h2>Player 1</h2>
+                <span id="status1" class="status">
+                    Not loaded
+                </span>
+            </div>
+
+
+            <!-- URL INPUT -->
+
+            <div class="input-section">
+
+                <label for="url1">
+                    YouTube Video / Playlist URL
+                </label>
+
+                <div class="url-row">
+
+                    <input
+                        id="url1"
+                        type="url"
+                        placeholder="Paste YouTube video or playlist URL"
+                    >
+
+                    <button id="load1Btn">
+                        Load
+                    </button>
+
+                </div>
+
+                <div id="error1" class="error"></div>
+
+            </div>
+
+
+            <!-- YOUTUBE PLAYER -->
+
+            <div class="youtube-wrapper">
+                <div id="player1"></div>
+            </div>
+
+
+            <!-- CURRENT VIDEO INFO -->
+
+            <div class="now-playing">
+
+                <div class="now-playing-title">
+                    <span>Now Playing</span>
+                </div>
+
+                <div id="title1" class="video-title">
+                    No video loaded
+                </div>
+
+                <div id="position1" class="video-position">
+                    0 / 0
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 TIMELINE
+            ================================================== -->
+
+            <div class="timeline-section">
+
+                <div class="time-row">
+
+                    <span id="currentTime1">
+                        00:00
+                    </span>
+
+                    <span id="remainingTime1">
+                        -00:00
+                    </span>
+
+                    <span id="duration1">
+                        00:00
+                    </span>
+
+                </div>
+
+                <input
+                    id="timeline1"
+                    class="timeline"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="0"
+                    step="0.1"
+                >
+
+            </div>
+
+
+            <!-- PLAYER CONTROLS -->
+
+            <div class="player-controls">
+
+                <button id="previous1Btn">
+                    ⏮ Previous
+                </button>
+
+                <button id="play1Btn">
+                    ▶ Play
+                </button>
+
+                <button id="pause1Btn">
+                    ⏸ Pause
+                </button>
+
+                <button id="next1Btn">
+                    Next ⏭
+                </button>
+
+            </div>
+
+
+            <!-- AUDIO CONTROLS -->
+
+            <div class="audio-controls">
+
+                <button id="mute1Btn">
+                    🔇 Mute
+                </button>
+
+                <label for="volume1">
+                    Volume
+                </label>
+
+                <input
+                    id="volume1"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="70"
+                >
+
+                <span id="volumeValue1">
+                    70%
+                </span>
+
+            </div>
+
+
+            <!-- PLAYLIST OPTIONS -->
+
+            <div class="playlist-options">
+
+                <label class="checkbox-label">
+
+                    <input
+                        id="loop1"
+                        type="checkbox"
+                    >
+
+                    Loop Playlist
+
+                </label>
+
+
+                <label class="checkbox-label">
+
+                    <input
+                        id="shuffle1"
+                        type="checkbox"
+                    >
+
+                    Shuffle
+
+                </label>
+
+            </div>
+
+
+            <!-- PLAYLIST -->
+
+            <div class="playlist-section">
+
+                <h3>Playlist</h3>
+
+                <div id="playlist1" class="playlist-list">
+
+                    <div class="empty-playlist">
+                        No playlist loaded
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             PLAYER 2
+        ====================================================== -->
+
+        <section class="player-card">
+
+            <div class="player-header">
+                <h2>Player 2</h2>
+                <span id="status2" class="status">
+                    Not loaded
+                </span>
+            </div>
+
+
+            <!-- URL INPUT -->
+
+            <div class="input-section">
+
+                <label for="url2">
+                    YouTube Video / Playlist URL
+                </label>
+
+                <div class="url-row">
+
+                    <input
+                        id="url2"
+                        type="url"
+                        placeholder="Paste YouTube video or playlist URL"
+                    >
+
+                    <button id="load2Btn">
+                        Load
+                    </button>
+
+                </div>
+
+                <div id="error2" class="error"></div>
+
+            </div>
+
+
+            <!-- YOUTUBE PLAYER -->
+
+            <div class="youtube-wrapper">
+                <div id="player2"></div>
+            </div>
+
+
+            <!-- CURRENT VIDEO INFO -->
+
+            <div class="now-playing">
+
+                <div class="now-playing-title">
+                    <span>Now Playing</span>
+                </div>
+
+                <div id="title2" class="video-title">
+                    No video loaded
+                </div>
+
+                <div id="position2" class="video-position">
+                    0 / 0
+                </div>
+
+            </div>
+
+
+            <!-- TIMELINE -->
+
+            <div class="timeline-section">
+
+                <div class="time-row">
+
+                    <span id="currentTime2">
+                        00:00
+                    </span>
+
+                    <span id="remainingTime2">
+                        -00:00
+                    </span>
+
+                    <span id="duration2">
+                        00:00
+                    </span>
+
+                </div>
+
+                <input
+                    id="timeline2"
+                    class="timeline"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="0"
+                    step="0.1"
+                >
+
+            </div>
+
+
+            <!-- PLAYER CONTROLS -->
+
+            <div class="player-controls">
+
+                <button id="previous2Btn">
+                    ⏮ Previous
+                </button>
+
+                <button id="play2Btn">
+                    ▶ Play
+                </button>
+
+                <button id="pause2Btn">
+                    ⏸ Pause
+                </button>
+
+                <button id="next2Btn">
+                    Next ⏭
+                </button>
+
+            </div>
+
+
+            <!-- AUDIO CONTROLS -->
+
+            <div class="audio-controls">
+
+                <button id="mute2Btn">
+                    🔇 Mute
+                </button>
+
+                <label for="volume2">
+                    Volume
+                </label>
+
+                <input
+                    id="volume2"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="40"
+                >
+
+                <span id="volumeValue2">
+                    40%
+                </span>
+
+            </div>
+
+
+            <!-- PLAYLIST OPTIONS -->
+
+            <div class="playlist-options">
+
+                <label class="checkbox-label">
+
+                    <input
+                        id="loop2"
+                        type="checkbox"
+                    >
+
+                    Loop Playlist
+
+                </label>
+
+
+                <label class="checkbox-label">
+
+                    <input
+                        id="shuffle2"
+                        type="checkbox"
+                    >
+
+                    Shuffle
+
+                </label>
+
+            </div>
+
+
+            <!-- PLAYLIST -->
+
+            <div class="playlist-section">
+
+                <h3>Playlist</h3>
+
+                <div id="playlist2" class="playlist-list">
+
+                    <div class="empty-playlist">
+                        No playlist loaded
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================================
+         COMMAND BOX
+    ========================================================== -->
+
+    <section class="command-section">
+
+        <h2>Command Box</h2>
+
+        <div class="command-row">
+
+            <input
+                id="commandInput"
+                type="text"
+                placeholder="Example: volume 1 70"
+            >
+
+            <button id="executeCommandBtn">
+                Execute
+            </button>
+
+        </div>
+
+        <div class="command-examples">
+
+            <strong>Examples:</strong>
+
+            <code>play 1</code>
+            <code>pause 2</code>
+            <code>next both</code>
+            <code>volume 1 70</code>
+            <code>mute both</code>
+
+        </div>
+
+        <div id="commandOutput" class="command-output">
+            Ready.
+        </div>
+
+    </section>
+
+</div>
+
+
+<!-- =============================================================
+     YOUTUBE IFRAME API
+============================================================== -->
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script src="script.js"></script>
+
+</body>
+</html>
