@@ -1,13 +1,5 @@
 /* =========================================================
-   DUAL YOUTUBE MULTI PLAYER
-
-   Uses the official YouTube IFrame Player API.
-
-   Architecture:
-       Player 1 -> YouTube IFrame instance
-       Player 2 -> YouTube IFrame instance
-
-   Both players exist inside the SAME webpage/tab.
+   DUAL YOUTUBE PLAYER
 ========================================================= */
 
 
@@ -39,7 +31,8 @@ class PlayerState {
 
         this.shuffle = false;
 
-        this.volume = id === 1 ? 70 : 40;
+        this.volume =
+            id === 1 ? 70 : 40;
 
         this.muted = false;
 
@@ -51,12 +44,15 @@ class PlayerState {
 
 
 /* =========================================================
-   CREATE TWO INDEPENDENT STATES
+   TWO INDEPENDENT PLAYERS
 ========================================================= */
 
 const players = {
+
     1: new PlayerState(1),
+
     2: new PlayerState(2)
+
 };
 
 
@@ -67,53 +63,72 @@ const players = {
 window.onYouTubeIframeAPIReady = function () {
 
     createYouTubePlayer(1);
+
     createYouTubePlayer(2);
+
 };
 
 
 /* =========================================================
-   CREATE YOUTUBE PLAYER
+   CREATE PLAYER
 ========================================================= */
 
 function createYouTubePlayer(id) {
 
     const state = players[id];
 
-    state.player = new YT.Player(`player${id}`, {
 
-        width: "100%",
+    state.player = new YT.Player(
+        `player${id}`,
+        {
 
-        height: "100%",
+            width: "100%",
 
-        playerVars: {
+            height: "100%",
 
-            // Important for JS control.
-            enablejsapi: 1,
+            playerVars: {
 
-            // Avoid automatically playing without user interaction.
-            autoplay: 0,
+                enablejsapi: 1,
 
-            // Keep both players inside same page.
-            playsinline: 1,
+                autoplay: 0,
 
-            // Normal YouTube branding.
-            modestbranding: 1
+                playsinline: 1,
 
-        },
+                modestbranding: 1
 
-        events: {
+            },
 
-            onReady: () => handlePlayerReady(id),
+            events: {
 
-            onStateChange: (event) =>
-                handlePlayerStateChange(id, event),
+                onReady: function () {
 
-            onError: (event) =>
-                handlePlayerError(id, event)
+                    handlePlayerReady(id);
+
+                },
+
+                onStateChange: function (event) {
+
+                    handlePlayerStateChange(
+                        id,
+                        event
+                    );
+
+                },
+
+                onError: function (event) {
+
+                    handlePlayerError(
+                        id,
+                        event
+                    );
+
+                }
+
+            }
 
         }
+    );
 
-    });
 }
 
 
@@ -127,11 +142,17 @@ function handlePlayerReady(id) {
 
     state.ready = true;
 
-    state.player.setVolume(state.volume);
+    state.player.setVolume(
+        state.volume
+    );
 
-    setStatus(id, "Ready");
+    setStatus(
+        id,
+        "Ready"
+    );
 
     startProgressUpdater(id);
+
 }
 
 
@@ -139,9 +160,13 @@ function handlePlayerReady(id) {
    PLAYER STATE CHANGE
 ========================================================= */
 
-function handlePlayerStateChange(id, event) {
+function handlePlayerStateChange(
+    id,
+    event
+) {
 
     const state = players[id];
+
 
     if (!state.player) {
         return;
@@ -152,7 +177,10 @@ function handlePlayerStateChange(id, event) {
 
         case YT.PlayerState.PLAYING:
 
-            setStatus(id, "Playing");
+            setStatus(
+                id,
+                "Playing"
+            );
 
             updateCurrentVideoInfo(id);
 
@@ -163,21 +191,30 @@ function handlePlayerStateChange(id, event) {
 
         case YT.PlayerState.PAUSED:
 
-            setStatus(id, "Paused");
+            setStatus(
+                id,
+                "Paused"
+            );
 
             break;
 
 
         case YT.PlayerState.BUFFERING:
 
-            setStatus(id, "Buffering...");
+            setStatus(
+                id,
+                "Buffering..."
+            );
 
             break;
 
 
         case YT.PlayerState.CUED:
 
-            setStatus(id, "Ready");
+            setStatus(
+                id,
+                "Ready"
+            );
 
             updateCurrentVideoInfo(id);
 
@@ -196,32 +233,49 @@ function handlePlayerStateChange(id, event) {
 
 
 /* =========================================================
-   PLAYER ERROR
+   YOUTUBE ERROR
 ========================================================= */
 
-function handlePlayerError(id, event) {
+function handlePlayerError(
+    id,
+    event
+) {
 
     const messages = {
 
-        2: "Invalid YouTube video or playlist request.",
+        2:
+            "Invalid YouTube video or playlist request.",
 
-        5: "The video cannot be played in this player.",
+        5:
+            "The video cannot be played.",
 
-        100: "The requested video was not found or is private.",
+        100:
+            "The video was not found or is private.",
 
-        101: "The video owner does not allow embedded playback.",
+        101:
+            "The video owner does not allow embedding.",
 
-        150: "The video owner does not allow embedded playback."
+        150:
+            "The video owner does not allow embedding."
 
     };
+
 
     const message =
         messages[event.data] ||
         "YouTube could not play this content.";
 
-    showError(id, message);
 
-    setStatus(id, "Error");
+    showError(
+        id,
+        message
+    );
+
+    setStatus(
+        id,
+        "Error"
+    );
+
 }
 
 
@@ -231,32 +285,54 @@ function handlePlayerError(id, event) {
 
 function parseYouTubeURL(input) {
 
-    if (!input || !input.trim()) {
+    if (
+        !input ||
+        !input.trim()
+    ) {
 
         return {
+
             valid: false,
-            error: "Please enter a YouTube URL."
+
+            error:
+                "Please enter a YouTube URL."
+
         };
+
     }
 
 
     let url;
 
+
     try {
 
-        url = new URL(input.trim());
+        url =
+            new URL(
+                input.trim()
+            );
 
     } catch {
 
         return {
+
             valid: false,
-            error: "Invalid URL."
+
+            error:
+                "Invalid URL."
+
         };
+
     }
 
 
     const hostname =
-        url.hostname.toLowerCase().replace(/^www\./, "");
+        url.hostname
+            .toLowerCase()
+            .replace(
+                /^www\./,
+                ""
+            );
 
 
     const isYouTube =
@@ -268,26 +344,30 @@ function parseYouTubeURL(input) {
     if (!isYouTube) {
 
         return {
+
             valid: false,
-            error: "Please enter a valid YouTube URL."
+
+            error:
+                "Please enter a valid YouTube URL."
+
         };
+
     }
 
 
-    const videoId = getVideoId(url);
+    const videoId =
+        getVideoId(url);
+
 
     const playlistId =
-        url.searchParams.get("list");
+        url.searchParams.get(
+            "list"
+        );
 
 
     /*
-       If a playlist exists, treat the URL as a playlist.
-
-       This also handles:
-
-       youtube.com/watch?v=VIDEO_ID&list=PLAYLIST_ID
-
-       because the playlist parameter is present.
+       If list= exists,
+       treat it as a playlist.
     */
 
     if (playlistId) {
@@ -298,11 +378,12 @@ function parseYouTubeURL(input) {
 
             type: "playlist",
 
-            playlistId: playlistId,
+            playlistId,
 
-            videoId: videoId
+            videoId
 
         };
+
     }
 
 
@@ -314,9 +395,10 @@ function parseYouTubeURL(input) {
 
             type: "video",
 
-            videoId: videoId
+            videoId
 
         };
+
     }
 
 
@@ -324,25 +406,37 @@ function parseYouTubeURL(input) {
 
         valid: false,
 
-        error: "Could not find a YouTube video ID or playlist ID."
+        error:
+            "Could not find video or playlist ID."
 
     };
+
 }
 
 
 /* =========================================================
-   EXTRACT VIDEO ID
+   GET VIDEO ID
 ========================================================= */
 
 function getVideoId(url) {
 
     const hostname =
-        url.hostname.toLowerCase().replace(/^www\./, "");
+        url.hostname
+            .toLowerCase()
+            .replace(
+                /^www\./,
+                ""
+            );
 
 
-    if (hostname === "youtu.be") {
+    if (
+        hostname === "youtu.be"
+    ) {
 
-        return url.pathname.substring(1) || null;
+        return (
+            url.pathname.substring(1) ||
+            null
+        );
 
     }
 
@@ -352,23 +446,41 @@ function getVideoId(url) {
         hostname === "m.youtube.com"
     ) {
 
-        if (url.pathname === "/watch") {
+        if (
+            url.pathname === "/watch"
+        ) {
 
-            return url.searchParams.get("v");
-
-        }
-
-
-        if (url.pathname.startsWith("/shorts/")) {
-
-            return url.pathname.split("/")[2] || null;
+            return url.searchParams.get(
+                "v"
+            );
 
         }
 
 
-        if (url.pathname.startsWith("/embed/")) {
+        if (
+            url.pathname.startsWith(
+                "/shorts/"
+            )
+        ) {
 
-            return url.pathname.split("/")[2] || null;
+            return (
+                url.pathname.split("/")[2] ||
+                null
+            );
+
+        }
+
+
+        if (
+            url.pathname.startsWith(
+                "/embed/"
+            )
+        ) {
+
+            return (
+                url.pathname.split("/")[2] ||
+                null
+            );
 
         }
 
@@ -376,85 +488,90 @@ function getVideoId(url) {
 
 
     return null;
+
 }
 
 
 /* =========================================================
-   LOAD URL
+   LOAD PLAYER
 ========================================================= */
 
 function loadPlayer(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     const input =
-        document.getElementById(`url${id}`).value;
+        document.getElementById(
+            `url${id}`
+        ).value;
+
 
     clearError(id);
 
-    const parsed = parseYouTubeURL(input);
+
+    const parsed =
+        parseYouTubeURL(input);
+
 
     if (!parsed.valid) {
 
-        showError(id, parsed.error);
-
-        return;
-    }
-
-
-    if (!state.ready || !state.player) {
-
         showError(
             id,
-            "YouTube player is not ready yet. Please wait a moment."
+            parsed.error
         );
 
         return;
+
     }
 
 
-    /*
-       Reset old playlist state.
-    */
+    if (
+        !state.ready ||
+        !state.player
+    ) {
 
-    state.type = parsed.type;
+        showError(
+            id,
+            "YouTube player is not ready yet."
+        );
 
-    state.videoId = parsed.videoId || null;
+        return;
 
-    state.playlistId = parsed.playlistId || null;
+    }
+
+
+    state.type =
+        parsed.type;
+
+    state.videoId =
+        parsed.videoId || null;
+
+    state.playlistId =
+        parsed.playlistId || null;
 
     state.playlist = [];
 
     state.currentIndex = -1;
 
 
-    try {
+    if (
+        parsed.type === "playlist"
+    ) {
 
-        if (parsed.type === "playlist") {
-
-            loadPlaylist(
-                id,
-                parsed.playlistId,
-                parsed.videoId
-            );
-
-        } else {
-
-            loadVideo(
-                id,
-                parsed.videoId
-            );
-
-        }
-
-    } catch (error) {
-
-        console.error(error);
-
-        showError(
+        loadPlaylist(
             id,
-            "Unable to load this YouTube content."
+            parsed.playlistId
         );
+
+    } else {
+
+        loadVideo(
+            id,
+            parsed.videoId
+        );
+
     }
 
 }
@@ -464,25 +581,40 @@ function loadPlayer(id) {
    LOAD SINGLE VIDEO
 ========================================================= */
 
-function loadVideo(id, videoId) {
+function loadVideo(
+    id,
+    videoId
+) {
 
-    const state = players[id];
+    const state =
+        players[id];
 
-    state.type = "video";
 
-    state.playlist = [videoId];
+    state.type =
+        "video";
 
-    state.currentIndex = 0;
+    state.playlist =
+        [videoId];
 
-    state.playlistId = null;
+    state.currentIndex =
+        0;
 
-    state.player.loadVideoById(videoId);
+    state.playlistId =
+        null;
+
+
+    state.player.loadVideoById(
+        videoId
+    );
+
 
     renderPlaylist(id);
 
-    setStatus(id, "Loading...");
+    setStatus(
+        id,
+        "Loading..."
+    );
 
-    updatePosition(id);
 }
 
 
@@ -492,65 +624,56 @@ function loadVideo(id, videoId) {
 
 function loadPlaylist(
     id,
-    playlistId,
-    startingVideoId = null
+    playlistId
 ) {
 
-    const state = players[id];
-
-    state.type = "playlist";
-
-    state.playlistId = playlistId;
+    const state =
+        players[id];
 
 
-    /*
-       Load playlist using the YouTube IFrame API.
+    state.type =
+        "playlist";
 
-       No page reload occurs.
-    */
-
-    if (startingVideoId) {
-
-        state.player.loadPlaylist({
-
-            listType: "playlist",
-
-            list: playlistId,
-
-            index: 0
-
-        });
-
-    } else {
-
-        state.player.loadPlaylist({
-
-            listType: "playlist",
-
-            list: playlistId,
-
-            index: 0
-
-        });
-
-    }
+    state.playlistId =
+        playlistId;
 
 
-    /*
-       Give YouTube a short amount of time to expose
-       the playlist IDs through getPlaylist().
-    */
+    state.player.loadPlaylist({
 
-    setTimeout(() => {
+        listType: "playlist",
 
-        refreshPlaylistFromYouTube(id);
+        list: playlistId,
 
-    }, 1000);
+        index: 0
+
+    });
 
 
-    setStatus(id, "Loading playlist...");
+    setStatus(
+        id,
+        "Loading playlist..."
+    );
+
 
     clearError(id);
+
+
+    /*
+       Wait until YouTube exposes
+       the playlist information.
+    */
+
+    setTimeout(
+        function () {
+
+            refreshPlaylist(
+                id
+            );
+
+        },
+        1200
+    );
+
 }
 
 
@@ -558,9 +681,11 @@ function loadPlaylist(
    REFRESH PLAYLIST
 ========================================================= */
 
-function refreshPlaylistFromYouTube(id) {
+function refreshPlaylist(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     if (!state.player) {
         return;
@@ -571,37 +696,55 @@ function refreshPlaylistFromYouTube(id) {
         state.player.getPlaylist();
 
 
-    if (!playlist || playlist.length === 0) {
+    if (
+        !playlist ||
+        playlist.length === 0
+    ) {
 
-        setTimeout(() => {
+        setTimeout(
+            function () {
 
-            const retry =
-                state.player.getPlaylist();
+                const retry =
+                    state.player.getPlaylist();
 
-            if (retry && retry.length > 0) {
 
-                state.playlist = retry;
+                if (
+                    retry &&
+                    retry.length > 0
+                ) {
 
-                renderPlaylist(id);
+                    state.playlist =
+                        retry;
 
-                updatePosition(id);
+                    state.currentIndex =
+                        state.player
+                            .getPlaylistIndex();
 
-            } else {
+                    renderPlaylist(id);
 
-                showError(
-                    id,
-                    "Playlist could not be loaded. Check the playlist URL or privacy settings."
-                );
+                    updatePosition(id);
 
-            }
+                } else {
 
-        }, 1500);
+                    showError(
+                        id,
+                        "Playlist could not be loaded."
+                    );
+
+                }
+
+            },
+            1500
+        );
 
         return;
+
     }
 
 
-    state.playlist = playlist;
+    state.playlist =
+        playlist;
+
 
     state.currentIndex =
         state.player.getPlaylistIndex();
@@ -609,9 +752,8 @@ function refreshPlaylistFromYouTube(id) {
 
     renderPlaylist(id);
 
-    updateCurrentVideoInfo(id);
-
     updatePosition(id);
+
 }
 
 
@@ -621,15 +763,21 @@ function refreshPlaylistFromYouTube(id) {
 
 function playPlayer(id) {
 
-    const state = players[id];
-
     if (!isPlayerReady(id)) {
         return;
     }
 
-    state.player.playVideo();
 
-    setStatus(id, "Playing");
+    players[id]
+        .player
+        .playVideo();
+
+
+    setStatus(
+        id,
+        "Playing"
+    );
+
 }
 
 
@@ -639,15 +787,21 @@ function playPlayer(id) {
 
 function pausePlayer(id) {
 
-    const state = players[id];
-
     if (!isPlayerReady(id)) {
         return;
     }
 
-    state.player.pauseVideo();
 
-    setStatus(id, "Paused");
+    players[id]
+        .player
+        .pauseVideo();
+
+
+    setStatus(
+        id,
+        "Paused"
+    );
+
 }
 
 
@@ -657,60 +811,69 @@ function pausePlayer(id) {
 
 function nextPlayer(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     if (!isPlayerReady(id)) {
         return;
     }
 
 
-    if (state.type === "playlist") {
+    if (
+        state.type !== "playlist"
+    ) {
 
-        const playlist =
-            state.player.getPlaylist();
-
-
-        if (!playlist || playlist.length === 0) {
-
-            showError(
-                id,
-                "No playlist is currently loaded."
-            );
-
-            return;
-        }
-
-
-        const current =
-            state.player.getPlaylistIndex();
-
-
-        /*
-           YouTube handles playlist navigation.
-        */
-
-        if (
-            current >= playlist.length - 1 &&
-            !state.loop
-        ) {
-
-            setStatus(id, "End of playlist");
-
-            return;
-        }
-
-
-        state.player.nextVideo();
+        setStatus(
+            id,
+            "Single video"
+        );
 
         return;
+
     }
 
 
-    /*
-       A single video does not have a "next" video.
-    */
+    const playlist =
+        state.player.getPlaylist();
 
-    setStatus(id, "Single video");
+
+    if (
+        !playlist ||
+        playlist.length === 0
+    ) {
+
+        showError(
+            id,
+            "No playlist loaded."
+        );
+
+        return;
+
+    }
+
+
+    const current =
+        state.player.getPlaylistIndex();
+
+
+    if (
+        current >= playlist.length - 1 &&
+        !state.loop
+    ) {
+
+        setStatus(
+            id,
+            "End of playlist"
+        );
+
+        return;
+
+    }
+
+
+    state.player.nextVideo();
+
 }
 
 
@@ -720,37 +883,50 @@ function nextPlayer(id) {
 
 function previousPlayer(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     if (!isPlayerReady(id)) {
         return;
     }
 
 
-    if (state.type === "playlist") {
+    if (
+        state.type !== "playlist"
+    ) {
 
-        const playlist =
-            state.player.getPlaylist();
-
-
-        if (!playlist || playlist.length === 0) {
-
-            showError(
-                id,
-                "No playlist is currently loaded."
-            );
-
-            return;
-        }
-
-
-        state.player.previousVideo();
+        setStatus(
+            id,
+            "Single video"
+        );
 
         return;
+
     }
 
 
-    setStatus(id, "Single video");
+    const playlist =
+        state.player.getPlaylist();
+
+
+    if (
+        !playlist ||
+        playlist.length === 0
+    ) {
+
+        showError(
+            id,
+            "No playlist loaded."
+        );
+
+        return;
+
+    }
+
+
+    state.player.previousVideo();
+
 }
 
 
@@ -760,18 +936,26 @@ function previousPlayer(id) {
 
 function mutePlayer(id) {
 
-    const state = players[id];
-
     if (!isPlayerReady(id)) {
         return;
     }
 
+
+    const state =
+        players[id];
+
+
     state.player.mute();
 
-    state.muted = true;
+    state.muted =
+        true;
 
-    document.getElementById(`mute${id}Btn`)
-        .textContent = "🔊 Unmute";
+
+    document.getElementById(
+        `mute${id}Btn`
+    ).textContent =
+        "🔊 Unmute";
+
 }
 
 
@@ -781,18 +965,26 @@ function mutePlayer(id) {
 
 function unmutePlayer(id) {
 
-    const state = players[id];
-
     if (!isPlayerReady(id)) {
         return;
     }
 
+
+    const state =
+        players[id];
+
+
     state.player.unMute();
 
-    state.muted = false;
+    state.muted =
+        false;
 
-    document.getElementById(`mute${id}Btn`)
-        .textContent = "🔇 Mute";
+
+    document.getElementById(
+        `mute${id}Btn`
+    ).textContent =
+        "🔇 Mute";
+
 }
 
 
@@ -802,9 +994,9 @@ function unmutePlayer(id) {
 
 function toggleMute(id) {
 
-    const state = players[id];
-
-    if (state.muted) {
+    if (
+        players[id].muted
+    ) {
 
         unmutePlayer(id);
 
@@ -813,18 +1005,25 @@ function toggleMute(id) {
         mutePlayer(id);
 
     }
+
 }
 
 
 /* =========================================================
-   SET VOLUME
+   VOLUME
 ========================================================= */
 
-function setPlayerVolume(id, volume) {
+function setPlayerVolume(
+    id,
+    volume
+) {
 
-    const state = players[id];
+    const state =
+        players[id];
 
-    volume = Number(volume);
+
+    volume =
+        Number(volume);
 
 
     if (
@@ -839,29 +1038,42 @@ function setPlayerVolume(id, volume) {
         );
 
         return false;
+
     }
 
 
-    if (!isPlayerReady(id)) {
+    if (
+        !isPlayerReady(id)
+    ) {
 
         return false;
+
     }
 
 
-    state.volume = volume;
-
-    state.player.setVolume(volume);
-
-
-    document.getElementById(`volume${id}`)
-        .value = volume;
+    state.volume =
+        volume;
 
 
-    document.getElementById(`volumeValue${id}`)
-        .textContent = `${volume}%`;
+    state.player.setVolume(
+        volume
+    );
+
+
+    document.getElementById(
+        `volume${id}`
+    ).value =
+        volume;
+
+
+    document.getElementById(
+        `volumeValue${id}`
+    ).textContent =
+        `${volume}%`;
 
 
     return true;
+
 }
 
 
@@ -871,26 +1083,33 @@ function setPlayerVolume(id, volume) {
 
 function updateLoop(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     state.loop =
-        document.getElementById(`loop${id}`).checked;
+        document.getElementById(
+            `loop${id}`
+        ).checked;
 
 
-    if (!isPlayerReady(id)) {
+    if (
+        !isPlayerReady(id)
+    ) {
         return;
     }
 
 
-    if (state.type === "playlist") {
+    if (
+        state.type === "playlist"
+    ) {
 
-        /*
-           YouTube API's playlist loop function.
-        */
-
-        state.player.setLoop(state.loop);
+        state.player.setLoop(
+            state.loop
+        );
 
     }
+
 }
 
 
@@ -900,39 +1119,57 @@ function updateLoop(id) {
 
 function updateShuffle(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     state.shuffle =
-        document.getElementById(`shuffle${id}`).checked;
+        document.getElementById(
+            `shuffle${id}`
+        ).checked;
 
 
-    if (!isPlayerReady(id)) {
+    if (
+        !isPlayerReady(id)
+    ) {
         return;
     }
 
 
-    if (state.type === "playlist") {
+    if (
+        state.type === "playlist"
+    ) {
 
-        state.player.setShuffle(state.shuffle);
+        state.player.setShuffle(
+            state.shuffle
+        );
 
     }
+
 }
 
 
 /* =========================================================
-   HANDLE VIDEO END
+   VIDEO ENDED
 ========================================================= */
 
 function handleVideoEnded(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
 
 
-    if (state.type !== "playlist") {
+    if (
+        state.type !== "playlist"
+    ) {
 
-        setStatus(id, "Finished");
+        setStatus(
+            id,
+            "Finished"
+        );
 
         return;
+
     }
 
 
@@ -940,61 +1177,36 @@ function handleVideoEnded(id) {
         state.player.getPlaylist();
 
 
-    if (!playlist || playlist.length === 0) {
+    if (
+        !playlist ||
+        playlist.length === 0
+    ) {
 
-        setStatus(id, "Finished");
+        setStatus(
+            id,
+            "Finished"
+        );
 
         return;
+
     }
 
 
-    const currentIndex =
+    const current =
         state.player.getPlaylistIndex();
 
 
-    /*
-       Loop enabled:
-       YouTube will continue looping the playlist.
-    */
+    if (
+        current >= playlist.length - 1 &&
+        !state.loop
+    ) {
 
-    if (state.loop) {
+        setStatus(
+            id,
+            "Playlist finished"
+        );
 
-        return;
     }
-
-
-    /*
-       Loop disabled:
-       Stop at the final playlist item.
-    */
-
-    if (currentIndex >= playlist.length - 1) {
-
-        setStatus(id, "Playlist finished");
-
-        updatePosition(id);
-
-        return;
-    }
-
-
-    /*
-       Normally YouTube automatically advances.
-       This is a safety fallback.
-    */
-
-    setTimeout(() => {
-
-        const newIndex =
-            state.player.getPlaylistIndex();
-
-        if (newIndex === currentIndex) {
-
-            state.player.nextVideo();
-
-        }
-
-    }, 300);
 
 }
 
@@ -1005,13 +1217,20 @@ function handleVideoEnded(id) {
 
 function renderPlaylist(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     const container =
-        document.getElementById(`playlist${id}`);
+        document.getElementById(
+            `playlist${id}`
+        );
 
 
-    if (!state.playlist || state.playlist.length === 0) {
+    if (
+        !state.playlist ||
+        state.playlist.length === 0
+    ) {
 
         container.innerHTML = `
             <div class="empty-playlist">
@@ -1020,57 +1239,78 @@ function renderPlaylist(id) {
         `;
 
         return;
+
     }
 
 
     container.innerHTML = "";
 
 
-    state.playlist.forEach((videoId, index) => {
+    state.playlist.forEach(
+        function (
+            videoId,
+            index
+        ) {
 
-        const item =
-            document.createElement("div");
+            const item =
+                document.createElement(
+                    "div"
+                );
 
 
-        item.className = "playlist-item";
+            item.className =
+                "playlist-item";
 
 
-        if (index === state.currentIndex) {
+            if (
+                index ===
+                state.currentIndex
+            ) {
 
-            item.classList.add("active");
+                item.classList.add(
+                    "active"
+                );
+
+            }
+
+
+            item.innerHTML = `
+
+                <div class="playlist-number">
+                    ${index + 1}
+                </div>
+
+                <div class="playlist-title">
+                    ${
+                        index ===
+                        state.currentIndex
+                        ? "▶ Now Playing"
+                        : `Video ${index + 1}`
+                    }
+                </div>
+
+            `;
+
+
+            item.addEventListener(
+                "click",
+                function () {
+
+                    playPlaylistItem(
+                        id,
+                        index
+                    );
+
+                }
+            );
+
+
+            container.appendChild(
+                item
+            );
 
         }
-
-
-        item.dataset.index = index;
-
-
-        item.innerHTML = `
-
-            <div class="playlist-number">
-                ${index + 1}
-            </div>
-
-            <div class="playlist-title">
-                ${index === state.currentIndex
-                    ? "▶ Now Playing"
-                    : `Video ${index + 1}`
-                }
-            </div>
-
-        `;
-
-
-        item.addEventListener("click", () => {
-
-            playPlaylistItem(id, index);
-
-        });
-
-
-        container.appendChild(item);
-
-    });
+    );
 
 }
 
@@ -1079,17 +1319,23 @@ function renderPlaylist(id) {
    PLAY PLAYLIST ITEM
 ========================================================= */
 
-function playPlaylistItem(id, index) {
+function playPlaylistItem(
+    id,
+    index
+) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     if (!isPlayerReady(id)) {
         return;
     }
 
 
-    if (state.type !== "playlist") {
-
+    if (
+        state.type !== "playlist"
+    ) {
         return;
     }
 
@@ -1105,16 +1351,18 @@ function playPlaylistItem(id, index) {
     ) {
 
         return;
+
     }
 
 
-    /*
-       YouTube's playlist index is used directly.
-    */
+    state.currentIndex =
+        index;
 
-    state.player.playVideoAt(index);
 
-    state.currentIndex = index;
+    state.player.playVideoAt(
+        index
+    );
+
 
     updatePlaylistUI(id);
 
@@ -1127,22 +1375,25 @@ function playPlaylistItem(id, index) {
 
 function updatePlaylistUI(id) {
 
-    const state = players[id];
-
-    if (!state.player) {
-        return;
-    }
+    const state =
+        players[id];
 
 
-    if (state.type === "playlist") {
+    if (
+        state.type === "playlist" &&
+        state.player
+    ) {
 
         const index =
             state.player.getPlaylistIndex();
 
 
-        if (index >= 0) {
+        if (
+            index >= 0
+        ) {
 
-            state.currentIndex = index;
+            state.currentIndex =
+                index;
 
         }
 
@@ -1155,31 +1406,41 @@ function updatePlaylistUI(id) {
         );
 
 
-    items.forEach((item, index) => {
+    items.forEach(
+        function (
+            item,
+            index
+        ) {
 
-        item.classList.toggle(
-            "active",
-            index === state.currentIndex
-        );
+            const active =
+                index ===
+                state.currentIndex;
 
 
-        const title =
-            item.querySelector(".playlist-title");
+            item.classList.toggle(
+                "active",
+                active
+            );
 
 
-        if (title) {
+            const title =
+                item.querySelector(
+                    ".playlist-title"
+                );
 
-            title.textContent =
-                index === state.currentIndex
+
+            if (title) {
+
+                title.textContent =
+                    active
                     ? "▶ Now Playing"
                     : `Video ${index + 1}`;
 
+            }
+
         }
+    );
 
-    });
-
-
-    updatePosition(id);
 }
 
 
@@ -1189,11 +1450,13 @@ function updatePlaylistUI(id) {
 
 function updateCurrentVideoInfo(id) {
 
-    const state = players[id];
-
     if (!isPlayerReady(id)) {
         return;
     }
+
+
+    const state =
+        players[id];
 
 
     const data =
@@ -1201,16 +1464,20 @@ function updateCurrentVideoInfo(id) {
 
 
     const title =
-        data && data.title
-            ? data.title
-            : "YouTube video";
+        data &&
+        data.title
+        ? data.title
+        : "YouTube video";
 
 
-    document.getElementById(`title${id}`)
-        .textContent = title;
+    document.getElementById(
+        `title${id}`
+    ).textContent =
+        title;
 
 
     updatePosition(id);
+
 }
 
 
@@ -1220,81 +1487,72 @@ function updateCurrentVideoInfo(id) {
 
 function updatePosition(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
 
-    if (!isPlayerReady(id)) {
+
+    if (
+        !state.player
+    ) {
         return;
     }
 
 
-    let index = 0;
+    let index =
+        0;
 
-    let total = 1;
+
+    let total =
+        1;
 
 
-    if (state.type === "playlist") {
+    if (
+        state.type === "playlist"
+    ) {
 
         const playlist =
             state.player.getPlaylist();
 
 
-        if (playlist && playlist.length > 0) {
+        if (
+            playlist &&
+            playlist.length > 0
+        ) {
 
-            total = playlist.length;
+            total =
+                playlist.length;
+
 
             index =
-                state.player.getPlaylistIndex();
+                state.player
+                    .getPlaylistIndex();
 
         }
 
     }
 
 
-    document.getElementById(`position${id}`)
-        .textContent =
-        `${Math.max(index + 1, 1)} / ${total}`;
+    if (
+        index < 0
+    ) {
+
+        index = 0;
+
+    }
 
 
-    updatePlaylistUIWithoutRecursion(id);
-}
+    state.currentIndex =
+        index;
 
 
-/* =========================================================
-   UPDATE PLAYLIST WITHOUT CALLING POSITION AGAIN
-========================================================= */
-
-function updatePlaylistUIWithoutRecursion(id) {
-
-    const state = players[id];
-
-    const items =
-        document.querySelectorAll(
-            `#playlist${id} .playlist-item`
-        );
+    document.getElementById(
+        `position${id}`
+    ).textContent =
+        `${index + 1} / ${total}`;
 
 
-    items.forEach((item, index) => {
+    updatePlaylistUI(id);
 
-        const active =
-            index === state.currentIndex;
-
-        item.classList.toggle("active", active);
-
-
-        const title =
-            item.querySelector(".playlist-title");
-
-
-        if (title) {
-
-            title.textContent =
-                active
-                    ? "▶ Now Playing"
-                    : `Video ${index + 1}`;
-
-        }
-
-    });
 }
 
 
@@ -1304,22 +1562,30 @@ function updatePlaylistUIWithoutRecursion(id) {
 
 function startProgressUpdater(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
 
 
-    if (state.progressTimer) {
+    if (
+        state.progressTimer
+    ) {
 
-        clearInterval(state.progressTimer);
+        clearInterval(
+            state.progressTimer
+        );
 
     }
 
 
     state.progressTimer =
-        setInterval(() => {
+        setInterval(
+            function () {
 
-            updateTimeline(id);
+                updateTimeline(id);
 
-        }, 500);
+            },
+            500
+        );
 
 }
 
@@ -1330,7 +1596,9 @@ function startProgressUpdater(id) {
 
 function updateTimeline(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
+
 
     if (
         !state.player ||
@@ -1339,17 +1607,20 @@ function updateTimeline(id) {
     ) {
 
         return;
+
     }
 
 
     try {
 
         const current =
-            state.player.getCurrentTime();
+            state.player
+                .getCurrentTime();
 
 
         const duration =
-            state.player.getDuration();
+            state.player
+                .getDuration();
 
 
         if (
@@ -1358,66 +1629,101 @@ function updateTimeline(id) {
         ) {
 
             return;
+
         }
 
 
         const percentage =
-            (current / duration) * 100;
+            (
+                current /
+                duration
+            ) * 100;
 
 
-        document.getElementById(`timeline${id}`)
-            .value = percentage;
+        document.getElementById(
+            `timeline${id}`
+        ).value =
+            percentage;
 
 
-        document.getElementById(`currentTime${id}`)
-            .textContent =
-            formatTime(current);
+        document.getElementById(
+            `currentTime${id}`
+        ).textContent =
+            formatTime(
+                current
+            );
 
 
-        document.getElementById(`duration${id}`)
-            .textContent =
-            formatTime(duration);
+        document.getElementById(
+            `duration${id}`
+        ).textContent =
+            formatTime(
+                duration
+            );
 
 
-        document.getElementById(`remainingTime${id}`)
-            .textContent =
-            `-${formatTime(Math.max(duration - current, 0))}`;
+        document.getElementById(
+            `remainingTime${id}`
+        ).textContent =
+            `-${formatTime(
+                Math.max(
+                    duration - current,
+                    0
+                )
+            )}`;
 
     } catch {
 
-        // Player may not be fully initialized yet.
+        // Player may not be ready yet.
+
     }
 
 }
 
 
 /* =========================================================
-   SEEK VIDEO
+   SEEK
 ========================================================= */
 
-function seekPlayer(id, percentage) {
-
-    const state = players[id];
+function seekPlayer(
+    id,
+    percentage
+) {
 
     if (!isPlayerReady(id)) {
         return;
     }
 
 
+    const player =
+        players[id].player;
+
+
     const duration =
-        state.player.getDuration();
+        player.getDuration();
 
 
-    if (!duration || duration <= 0) {
+    if (
+        !duration ||
+        duration <= 0
+    ) {
+
         return;
+
     }
 
 
     const time =
-        (Number(percentage) / 100) * duration;
+        (
+            Number(percentage) /
+            100
+        ) * duration;
 
 
-    state.player.seekTo(time, true);
+    player.seekTo(
+        time,
+        true
+    );
 
 }
 
@@ -1426,7 +1732,9 @@ function seekPlayer(id, percentage) {
    FORMAT TIME
 ========================================================= */
 
-function formatTime(seconds) {
+function formatTime(
+    seconds
+) {
 
     if (
         !seconds ||
@@ -1434,47 +1742,81 @@ function formatTime(seconds) {
     ) {
 
         return "00:00";
+
     }
 
 
-    seconds = Math.floor(seconds);
+    seconds =
+        Math.floor(
+            seconds
+        );
 
 
     const hours =
-        Math.floor(seconds / 3600);
+        Math.floor(
+            seconds / 3600
+        );
 
 
     const minutes =
-        Math.floor((seconds % 3600) / 60);
+        Math.floor(
+            (seconds % 3600) / 60
+        );
 
 
     const secs =
         seconds % 60;
 
 
-    if (hours > 0) {
+    if (
+        hours > 0
+    ) {
 
-        return `${String(hours).padStart(2, "0")}:` +
-               `${String(minutes).padStart(2, "0")}:` +
-               `${String(secs).padStart(2, "0")}`;
+        return (
+            String(hours)
+                .padStart(2, "0") +
+
+            ":" +
+
+            String(minutes)
+                .padStart(2, "0") +
+
+            ":" +
+
+            String(secs)
+                .padStart(2, "0")
+        );
 
     }
 
 
-    return `${String(minutes).padStart(2, "0")}:` +
-           `${String(secs).padStart(2, "0")}`;
+    return (
+        String(minutes)
+            .padStart(2, "0") +
+
+        ":" +
+
+        String(secs)
+            .padStart(2, "0")
+    );
+
 }
 
 
 /* =========================================================
-   PLAYER READY CHECK
+   READY CHECK
 ========================================================= */
 
 function isPlayerReady(id) {
 
-    const state = players[id];
+    const state =
+        players[id];
 
-    if (!state.ready || !state.player) {
+
+    if (
+        !state.ready ||
+        !state.player
+    ) {
 
         showError(
             id,
@@ -1482,10 +1824,12 @@ function isPlayerReady(id) {
         );
 
         return false;
+
     }
 
 
     return true;
+
 }
 
 
@@ -1493,10 +1837,16 @@ function isPlayerReady(id) {
    STATUS
 ========================================================= */
 
-function setStatus(id, message) {
+function setStatus(
+    id,
+    message
+) {
 
-    document.getElementById(`status${id}`)
-        .textContent = message;
+    document.getElementById(
+        `status${id}`
+    ).textContent =
+        message;
+
 }
 
 
@@ -1504,10 +1854,16 @@ function setStatus(id, message) {
    ERROR
 ========================================================= */
 
-function showError(id, message) {
+function showError(
+    id,
+    message
+) {
 
-    document.getElementById(`error${id}`)
-        .textContent = message;
+    document.getElementById(
+        `error${id}`
+    ).textContent =
+        message;
+
 }
 
 
@@ -1517,78 +1873,67 @@ function showError(id, message) {
 
 function clearError(id) {
 
-    document.getElementById(`error${id}`)
-        .textContent = "";
+    document.getElementById(
+        `error${id}`
+    ).textContent =
+        "";
+
 }
 
 
 /* =========================================================
-   GLOBAL PLAY
+   GLOBAL CONTROLS
 ========================================================= */
 
 function playBoth() {
 
     playPlayer(1);
+
     playPlayer(2);
 
 }
 
 
-/* =========================================================
-   GLOBAL PAUSE
-========================================================= */
-
 function pauseBoth() {
 
     pausePlayer(1);
+
     pausePlayer(2);
 
 }
 
 
-/* =========================================================
-   GLOBAL MUTE
-========================================================= */
-
 function muteBoth() {
 
     mutePlayer(1);
+
     mutePlayer(2);
 
 }
 
 
-/* =========================================================
-   GLOBAL UNMUTE
-========================================================= */
-
 function unmuteBoth() {
 
     unmutePlayer(1);
+
     unmutePlayer(2);
 
 }
 
 
-/* =========================================================
-   GLOBAL NEXT
-========================================================= */
-
 function nextBoth() {
 
     nextPlayer(1);
+
     nextPlayer(2);
 
 }
 
 
-/* =========================================================
-   GLOBAL PREVIOUS
-========================================================= */
-
 function previousBoth() {
 
     previousPlayer(1);
+
     previousPlayer(2);
 
 }
@@ -1601,13 +1946,17 @@ function previousBoth() {
 function executeCommand() {
 
     const input =
-        document.getElementById("commandInput")
-            .value
-            .trim();
+        document.getElementById(
+            "commandInput"
+        )
+        .value
+        .trim();
 
 
     const output =
-        document.getElementById("commandOutput");
+        document.getElementById(
+            "commandOutput"
+        );
 
 
     if (!input) {
@@ -1616,13 +1965,9 @@ function executeCommand() {
             "Please enter a command.";
 
         return;
+
     }
 
-
-    /*
-       Ignore extra spaces.
-       Make command case-insensitive.
-    */
 
     const parts =
         input
@@ -1630,18 +1975,25 @@ function executeCommand() {
             .split(/\s+/);
 
 
-    const command = parts[0];
+    const command =
+        parts[0];
 
-    const target = parts[1];
+
+    const target =
+        parts[1];
 
 
     /* =====================================================
        PLAY
     ====================================================== */
 
-    if (command === "play") {
+    if (
+        command === "play"
+    ) {
 
-        if (target === "1") {
+        if (
+            target === "1"
+        ) {
 
             playPlayer(1);
 
@@ -1649,10 +2001,13 @@ function executeCommand() {
                 "Player 1 playing.";
 
             return;
+
         }
 
 
-        if (target === "2") {
+        if (
+            target === "2"
+        ) {
 
             playPlayer(2);
 
@@ -1660,10 +2015,13 @@ function executeCommand() {
                 "Player 2 playing.";
 
             return;
+
         }
 
 
-        if (target === "both") {
+        if (
+            target === "both"
+        ) {
 
             playBoth();
 
@@ -1671,6 +2029,7 @@ function executeCommand() {
                 "Both players playing.";
 
             return;
+
         }
 
 
@@ -1679,6 +2038,7 @@ function executeCommand() {
         );
 
         return;
+
     }
 
 
@@ -1686,9 +2046,13 @@ function executeCommand() {
        PAUSE
     ====================================================== */
 
-    if (command === "pause") {
+    if (
+        command === "pause"
+    ) {
 
-        if (target === "1") {
+        if (
+            target === "1"
+        ) {
 
             pausePlayer(1);
 
@@ -1696,10 +2060,13 @@ function executeCommand() {
                 "Player 1 paused.";
 
             return;
+
         }
 
 
-        if (target === "2") {
+        if (
+            target === "2"
+        ) {
 
             pausePlayer(2);
 
@@ -1707,10 +2074,13 @@ function executeCommand() {
                 "Player 2 paused.";
 
             return;
+
         }
 
 
-        if (target === "both") {
+        if (
+            target === "both"
+        ) {
 
             pauseBoth();
 
@@ -1718,6 +2088,7 @@ function executeCommand() {
                 "Both players paused.";
 
             return;
+
         }
 
 
@@ -1726,6 +2097,7 @@ function executeCommand() {
         );
 
         return;
+
     }
 
 
@@ -1733,9 +2105,13 @@ function executeCommand() {
        NEXT
     ====================================================== */
 
-    if (command === "next") {
+    if (
+        command === "next"
+    ) {
 
-        if (target === "1") {
+        if (
+            target === "1"
+        ) {
 
             nextPlayer(1);
 
@@ -1743,10 +2119,13 @@ function executeCommand() {
                 "Player 1 moved to next video.";
 
             return;
+
         }
 
 
-        if (target === "2") {
+        if (
+            target === "2"
+        ) {
 
             nextPlayer(2);
 
@@ -1754,10 +2133,13 @@ function executeCommand() {
                 "Player 2 moved to next video.";
 
             return;
+
         }
 
 
-        if (target === "both") {
+        if (
+            target === "both"
+        ) {
 
             nextBoth();
 
@@ -1765,6 +2147,7 @@ function executeCommand() {
                 "Both players moved to next video.";
 
             return;
+
         }
 
 
@@ -1773,6 +2156,7 @@ function executeCommand() {
         );
 
         return;
+
     }
 
 
@@ -1785,7 +2169,9 @@ function executeCommand() {
         command === "prev"
     ) {
 
-        if (target === "1") {
+        if (
+            target === "1"
+        ) {
 
             previousPlayer(1);
 
@@ -1793,10 +2179,13 @@ function executeCommand() {
                 "Player 1 moved to previous video.";
 
             return;
+
         }
 
 
-        if (target === "2") {
+        if (
+            target === "2"
+        ) {
 
             previousPlayer(2);
 
@@ -1804,10 +2193,13 @@ function executeCommand() {
                 "Player 2 moved to previous video.";
 
             return;
+
         }
 
 
-        if (target === "both") {
+        if (
+            target === "both"
+        ) {
 
             previousBoth();
 
@@ -1815,6 +2207,7 @@ function executeCommand() {
                 "Both players moved to previous video.";
 
             return;
+
         }
 
 
@@ -1823,6 +2216,7 @@ function executeCommand() {
         );
 
         return;
+
     }
 
 
@@ -1830,9 +2224,13 @@ function executeCommand() {
        MUTE
     ====================================================== */
 
-    if (command === "mute") {
+    if (
+        command === "mute"
+    ) {
 
-        if (target === "1") {
+        if (
+            target === "1"
+        ) {
 
             mutePlayer(1);
 
@@ -1840,10 +2238,13 @@ function executeCommand() {
                 "Player 1 muted.";
 
             return;
+
         }
 
 
-        if (target === "2") {
+        if (
+            target === "2"
+        ) {
 
             mutePlayer(2);
 
@@ -1851,10 +2252,13 @@ function executeCommand() {
                 "Player 2 muted.";
 
             return;
+
         }
 
 
-        if (target === "both") {
+        if (
+            target === "both"
+        ) {
 
             muteBoth();
 
@@ -1862,6 +2266,7 @@ function executeCommand() {
                 "Both players muted.";
 
             return;
+
         }
 
 
@@ -1870,6 +2275,7 @@ function executeCommand() {
         );
 
         return;
+
     }
 
 
@@ -1877,9 +2283,13 @@ function executeCommand() {
        UNMUTE
     ====================================================== */
 
-    if (command === "unmute") {
+    if (
+        command === "unmute"
+    ) {
 
-        if (target === "1") {
+        if (
+            target === "1"
+        ) {
 
             unmutePlayer(1);
 
@@ -1887,10 +2297,13 @@ function executeCommand() {
                 "Player 1 unmuted.";
 
             return;
+
         }
 
 
-        if (target === "2") {
+        if (
+            target === "2"
+        ) {
 
             unmutePlayer(2);
 
@@ -1898,10 +2311,13 @@ function executeCommand() {
                 "Player 2 unmuted.";
 
             return;
+
         }
 
 
-        if (target === "both") {
+        if (
+            target === "both"
+        ) {
 
             unmuteBoth();
 
@@ -1909,6 +2325,7 @@ function executeCommand() {
                 "Both players unmuted.";
 
             return;
+
         }
 
 
@@ -1917,6 +2334,7 @@ function executeCommand() {
         );
 
         return;
+
     }
 
 
@@ -1924,7 +2342,9 @@ function executeCommand() {
        VOLUME
     ====================================================== */
 
-    if (command === "volume") {
+    if (
+        command === "volume"
+    ) {
 
         if (
             target !== "1" &&
@@ -1936,21 +2356,27 @@ function executeCommand() {
             );
 
             return;
+
         }
 
 
-        if (parts.length !== 3) {
+        if (
+            parts.length !== 3
+        ) {
 
             showCommandError(
                 "Use: volume 1 70."
             );
 
             return;
+
         }
 
 
         const volume =
-            Number(parts[2]);
+            Number(
+                parts[2]
+            );
 
 
         if (
@@ -1964,6 +2390,7 @@ function executeCommand() {
             );
 
             return;
+
         }
 
 
@@ -1983,17 +2410,20 @@ function executeCommand() {
 
         }
 
+
         return;
+
     }
 
 
     /* =====================================================
-       INVALID COMMAND
+       INVALID
     ====================================================== */
 
     showCommandError(
         "Invalid command. Example: play 1, next both, volume 1 70."
     );
+
 }
 
 
@@ -2001,302 +2431,442 @@ function executeCommand() {
    COMMAND ERROR
 ========================================================= */
 
-function showCommandError(message) {
+function showCommandError(
+    message
+) {
 
-    document.getElementById("commandOutput")
-        .textContent = message;
+    document.getElementById(
+        "commandOutput"
+    ).textContent =
+        message;
+
 }
 
 
 /* =========================================================
-   EVENT LISTENERS
+   BUTTON EVENTS
 ========================================================= */
 
 
-/* ---------- Load ---------- */
+/* LOAD */
 
-document.getElementById("load1Btn")
-    .addEventListener(
-        "click",
-        () => loadPlayer(1)
-    );
+document.getElementById(
+    "load1Btn"
+).addEventListener(
+    "click",
+    function () {
 
+        loadPlayer(1);
 
-document.getElementById("load2Btn")
-    .addEventListener(
-        "click",
-        () => loadPlayer(2)
-    );
+    }
+);
 
 
-/* ---------- Player 1 ---------- */
+document.getElementById(
+    "load2Btn"
+).addEventListener(
+    "click",
+    function () {
 
-document.getElementById("play1Btn")
-    .addEventListener(
-        "click",
-        () => playPlayer(1)
-    );
+        loadPlayer(2);
 
+    }
+);
 
-document.getElementById("pause1Btn")
-    .addEventListener(
-        "click",
-        () => pausePlayer(1)
-    );
 
+/* PLAYER 1 */
 
-document.getElementById("next1Btn")
-    .addEventListener(
-        "click",
-        () => nextPlayer(1)
-    );
+document.getElementById(
+    "play1Btn"
+).addEventListener(
+    "click",
+    function () {
 
+        playPlayer(1);
 
-document.getElementById("previous1Btn")
-    .addEventListener(
-        "click",
-        () => previousPlayer(1)
-    );
+    }
+);
 
 
-document.getElementById("mute1Btn")
-    .addEventListener(
-        "click",
-        () => toggleMute(1)
-    );
+document.getElementById(
+    "pause1Btn"
+).addEventListener(
+    "click",
+    function () {
 
+        pausePlayer(1);
 
-/* ---------- Player 2 ---------- */
+    }
+);
 
-document.getElementById("play2Btn")
-    .addEventListener(
-        "click",
-        () => playPlayer(2)
-    );
 
+document.getElementById(
+    "next1Btn"
+).addEventListener(
+    "click",
+    function () {
 
-document.getElementById("pause2Btn")
-    .addEventListener(
-        "click",
-        () => pausePlayer(2)
-    );
+        nextPlayer(1);
 
+    }
+);
 
-document.getElementById("next2Btn")
-    .addEventListener(
-        "click",
-        () => nextPlayer(2)
-    );
 
+document.getElementById(
+    "previous1Btn"
+).addEventListener(
+    "click",
+    function () {
 
-document.getElementById("previous2Btn")
-    .addEventListener(
-        "click",
-        () => previousPlayer(2)
-    );
+        previousPlayer(1);
 
+    }
+);
 
-document.getElementById("mute2Btn")
-    .addEventListener(
-        "click",
-        () => toggleMute(2)
-    );
 
+document.getElementById(
+    "mute1Btn"
+).addEventListener(
+    "click",
+    function () {
 
-/* ---------- Volume ---------- */
+        toggleMute(1);
 
-document.getElementById("volume1")
-    .addEventListener(
-        "input",
-        event => setPlayerVolume(1, event.target.value)
-    );
+    }
+);
 
 
-document.getElementById("volume2")
-    .addEventListener(
-        "input",
-        event => setPlayerVolume(2, event.target.value)
-    );
+/* PLAYER 2 */
 
+document.getElementById(
+    "play2Btn"
+).addEventListener(
+    "click",
+    function () {
 
-/* ---------- Loop ---------- */
+        playPlayer(2);
 
-document.getElementById("loop1")
-    .addEventListener(
-        "change",
-        () => updateLoop(1)
-    );
+    }
+);
 
 
-document.getElementById("loop2")
-    .addEventListener(
-        "change",
-        () => updateLoop(2)
-    );
+document.getElementById(
+    "pause2Btn"
+).addEventListener(
+    "click",
+    function () {
 
+        pausePlayer(2);
 
-/* ---------- Shuffle ---------- */
+    }
+);
 
-document.getElementById("shuffle1")
-    .addEventListener(
-        "change",
-        () => updateShuffle(1)
-    );
 
+document.getElementById(
+    "next2Btn"
+).addEventListener(
+    "click",
+    function () {
 
-document.getElementById("shuffle2")
-    .addEventListener(
-        "change",
-        () => updateShuffle(2)
-    );
+        nextPlayer(2);
 
+    }
+);
 
-/* ---------- Timeline ---------- */
 
-[1, 2].forEach(id => {
+document.getElementById(
+    "previous2Btn"
+).addEventListener(
+    "click",
+    function () {
 
-    const timeline =
-        document.getElementById(`timeline${id}`);
+        previousPlayer(2);
 
+    }
+);
 
-    timeline.addEventListener(
-        "mousedown",
-        () => {
-            players[id].timelineDragging = true;
-        }
-    );
 
+document.getElementById(
+    "mute2Btn"
+).addEventListener(
+    "click",
+    function () {
 
-    timeline.addEventListener(
-        "touchstart",
-        () => {
-            players[id].timelineDragging = true;
-        }
-    );
+        toggleMute(2);
 
+    }
+);
 
-    timeline.addEventListener(
-        "input",
-        event => {
-            seekPlayer(id, event.target.value);
-        }
-    );
 
+/* VOLUME */
 
-    timeline.addEventListener(
-        "change",
-        event => {
+document.getElementById(
+    "volume1"
+).addEventListener(
+    "input",
+    function (event) {
 
-            seekPlayer(id, event.target.value);
+        setPlayerVolume(
+            1,
+            event.target.value
+        );
 
-            players[id].timelineDragging = false;
+    }
+);
 
-        }
-    );
 
+document.getElementById(
+    "volume2"
+).addEventListener(
+    "input",
+    function (event) {
 
-    timeline.addEventListener(
-        "mouseup",
-        () => {
-            players[id].timelineDragging = false;
-        }
-    );
+        setPlayerVolume(
+            2,
+            event.target.value
+        );
 
+    }
+);
 
-    timeline.addEventListener(
-        "touchend",
-        () => {
-            players[id].timelineDragging = false;
-        }
-    );
 
-});
+/* LOOP */
 
+document.getElementById(
+    "loop1"
+).addEventListener(
+    "change",
+    function () {
 
-/* ---------- Global ---------- */
+        updateLoop(1);
 
-document.getElementById("playBothBtn")
-    .addEventListener(
-        "click",
-        playBoth
-    );
+    }
+);
 
 
-document.getElementById("pauseBothBtn")
-    .addEventListener(
-        "click",
-        pauseBoth
-    );
+document.getElementById(
+    "loop2"
+).addEventListener(
+    "change",
+    function () {
 
+        updateLoop(2);
 
-document.getElementById("muteBothBtn")
-    .addEventListener(
-        "click",
-        muteBoth
-    );
+    }
+);
 
 
-document.getElementById("unmuteBothBtn")
-    .addEventListener(
-        "click",
-        unmuteBoth
-    );
+/* SHUFFLE */
 
+document.getElementById(
+    "shuffle1"
+).addEventListener(
+    "change",
+    function () {
 
-document.getElementById("nextBothBtn")
-    .addEventListener(
-        "click",
-        nextBoth
-    );
+        updateShuffle(1);
 
+    }
+);
 
-document.getElementById("previousBothBtn")
-    .addEventListener(
-        "click",
-        previousBoth
-    );
 
+document.getElementById(
+    "shuffle2"
+).addEventListener(
+    "change",
+    function () {
 
-/* ---------- Command ---------- */
+        updateShuffle(2);
 
-document.getElementById("executeCommandBtn")
-    .addEventListener(
-        "click",
-        executeCommand
-    );
+    }
+);
 
 
-/*
-   Allow Enter key to execute command.
-*/
+/* TIMELINE */
 
-document.getElementById("commandInput")
-    .addEventListener(
-        "keydown",
-        event => {
+[1, 2].forEach(
+    function (id) {
 
-            if (event.key === "Enter") {
+        const timeline =
+            document.getElementById(
+                `timeline${id}`
+            );
 
-                executeCommand();
+
+        timeline.addEventListener(
+            "mousedown",
+            function () {
+
+                players[id]
+                    .timelineDragging =
+                    true;
 
             }
+        );
+
+
+        timeline.addEventListener(
+            "touchstart",
+            function () {
+
+                players[id]
+                    .timelineDragging =
+                    true;
+
+            }
+        );
+
+
+        timeline.addEventListener(
+            "input",
+            function (event) {
+
+                seekPlayer(
+                    id,
+                    event.target.value
+                );
+
+            }
+        );
+
+
+        timeline.addEventListener(
+            "change",
+            function (event) {
+
+                seekPlayer(
+                    id,
+                    event.target.value
+                );
+
+
+                players[id]
+                    .timelineDragging =
+                    false;
+
+            }
+        );
+
+
+        timeline.addEventListener(
+            "mouseup",
+            function () {
+
+                players[id]
+                    .timelineDragging =
+                    false;
+
+            }
+        );
+
+
+        timeline.addEventListener(
+            "touchend",
+            function () {
+
+                players[id]
+                    .timelineDragging =
+                    false;
+
+            }
+        );
+
+    }
+);
+
+
+/* GLOBAL */
+
+document.getElementById(
+    "playBothBtn"
+).addEventListener(
+    "click",
+    playBoth
+);
+
+
+document.getElementById(
+    "pauseBothBtn"
+).addEventListener(
+    "click",
+    pauseBoth
+);
+
+
+document.getElementById(
+    "muteBothBtn"
+).addEventListener(
+    "click",
+    muteBoth
+);
+
+
+document.getElementById(
+    "unmuteBothBtn"
+).addEventListener(
+    "click",
+    unmuteBoth
+);
+
+
+document.getElementById(
+    "nextBothBtn"
+).addEventListener(
+    "click",
+    nextBoth
+);
+
+
+document.getElementById(
+    "previousBothBtn"
+).addEventListener(
+    "click",
+    previousBoth
+);
+
+
+/* COMMAND */
+
+document.getElementById(
+    "executeCommandBtn"
+).addEventListener(
+    "click",
+    executeCommand
+);
+
+
+document.getElementById(
+    "commandInput"
+).addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            executeCommand();
 
         }
-    );
+
+    }
+);
 
 
-/*
-   Allow Enter key to load URL.
-*/
+/* URL ENTER */
 
-[1, 2].forEach(id => {
+[1, 2].forEach(
+    function (id) {
 
-    document.getElementById(`url${id}`)
-        .addEventListener(
+        document.getElementById(
+            `url${id}`
+        ).addEventListener(
             "keydown",
-            event => {
+            function (event) {
 
-                if (event.key === "Enter") {
+                if (
+                    event.key === "Enter"
+                ) {
 
                     loadPlayer(id);
 
@@ -2305,4 +2875,5 @@ document.getElementById("commandInput")
             }
         );
 
-});
+    }
+);
